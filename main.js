@@ -16,7 +16,7 @@ function createWindow() {
 
 // クラス抽出リクエスト
 ipcMain.handle("extract-classes", async (event, dir) => {
-  const result = await parser.extractClasses(dir);
+  const result = await parser.extractAttributes(dir);
   return result;
 });
 

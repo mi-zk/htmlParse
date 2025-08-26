@@ -7,7 +7,7 @@ const logEl = document.getElementById("log");
 let classes = {};
 
 // 最初にクラス抽出
-window.api.extractClasses("./sample-project").then((result) => {
+window.api.extractAttributes("./sample-project").then((result) => {
   classes = result;
   updateClassList();
 });
