@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Class Refactor Tool</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        display: flex;
+        height: 100vh;
+        margin: 0;
+      }
+      #classes {
+        width: 40%;
+        border-right: 1px solid #ccc;
+        overflow: auto;
+        padding: 10px;
+      }
+      #editor {
+        flex: 1;
+        padding: 10px;
+      }
+      input {
+        width: 80%;
+      }
+      button {
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="classes">
+      <h3>Class一覧</h3>
+      <ul id="classList"></ul>
+    </div>
+    <div id="editor">
+      <h3>リネーム</h3>
+      <input id="oldName" placeholder="元クラス名" />
+      <input id="newName" placeholder="新しいクラス名" />
+      <button id="renameBtn">変更</button>
+      <pre id="log"></pre>
+    </div>
+    <script src="renderer.js"></script>
+  </body>
+</html>
