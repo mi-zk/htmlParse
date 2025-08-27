@@ -14,8 +14,8 @@ function createWindow() {
   win.loadFile("index.html");
 }
 
-// クラス抽出リクエスト
-ipcMain.handle("extract-classes", async (event, dir) => {
+// attribute抽出リクエスト
+ipcMain.handle("extract-attributes", async (event, dir) => {
   const result = await parser.extractAttributes(dir);
   return result;
 });
@@ -23,6 +23,12 @@ ipcMain.handle("extract-classes", async (event, dir) => {
 // クラスリネームリクエスト
 ipcMain.handle("rename-class", async (event, oldName, newName) => {
   const result = await parser.renameClass(oldName, newName);
+  return result;
+});
+
+// クラスリネームリクエスト
+ipcMain.handle("rename-id", async (event, oldName, newName) => {
+  const result = await parser.renameid(oldName, newName);
   return result;
 });
 
