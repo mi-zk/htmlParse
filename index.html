@@ -2,7 +2,7 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <title>Class Refactor Tool</title>
+    <title>HTML Refactor Tool</title>
     <style>
       body {
         font-family: sans-serif;
@@ -11,7 +11,13 @@
         margin: 0;
       }
       #classes {
-        width: 40%;
+        width: 25%;
+        border-right: 1px solid #ccc;
+        overflow: auto;
+        padding: 10px;
+      }
+      #ids {
+        width: 25%;
         border-right: 1px solid #ccc;
         overflow: auto;
         padding: 10px;
@@ -33,11 +39,22 @@
       <h3>Class一覧</h3>
       <ul id="classList"></ul>
     </div>
+    <div id="ids">
+      <h3>ID一覧</h3>
+      <ul id="idList"></ul>
+    </div>
     <div id="editor">
       <h3>リネーム</h3>
       <input id="oldName" placeholder="元クラス名" />
       <input id="newName" placeholder="新しいクラス名" />
       <button id="renameBtn">変更</button>
+      <pre id="log"></pre>
+    </div>
+    <div id="editor">
+      <h3>リネーム</h3>
+      <input id="oldIdName" placeholder="元id名" />
+      <input id="newIdName" placeholder="新しいid名" />
+      <button id="renameIdBtn">変更</button>
       <pre id="log"></pre>
     </div>
     <script src="renderer.js"></script>
