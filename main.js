@@ -87,7 +87,9 @@ ipcMain.handle("analyze-project", async () => {
   }
 
   return {
-    tagAttrStats: Object.entries(tagAttrStats).map(([name, data]) => ({
+    tagAttrStats: Object.entries(tagAttrStats)
+    .sort((a, b) => b[1].count - a[1].count)
+    .map(([name, data]) => ({
       name,
       count: data.count,
       files: Array.from(data.files),
