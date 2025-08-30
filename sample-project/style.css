@@ -1,0 +1,12 @@
+.container {
+  padding: 20px;
+}
+
+.btn {
+  padding: 10px 20px;
+}
+
+.btn-primary {
+  background-color: blue;
+  color: white;
+}
