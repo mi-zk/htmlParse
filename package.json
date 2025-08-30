@@ -1,23 +1,14 @@
 {
-  "name": "refactoringtool",
+  "name": "tag-attr-summary",
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron ."
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "acorn": "^8.15.0",
-    "fast-glob": "^3.3.3",
-    "jsdom": "^26.1.0",
-    "postcss": "^8.5.6",
-    "postcss-selector-parser": "^7.1.0"
-  },
   "devDependencies": {
-    "electron": "^37.3.1"
+    "electron": "^32.0.0"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
   }
 }

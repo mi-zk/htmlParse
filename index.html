@@ -2,61 +2,78 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <title>HTML Refactor Tool</title>
+    <title>タグ＋属性集計</title>
     <style>
       body {
         font-family: sans-serif;
-        display: flex;
-        height: 100vh;
-        margin: 0;
+        margin: 20px;
       }
-      #classes {
-        width: 25%;
-        border-right: 1px solid #ccc;
-        overflow: auto;
-        padding: 10px;
+      table {
+        border-collapse: collapse;
+        width: 100%;
       }
-      #ids {
-        width: 25%;
-        border-right: 1px solid #ccc;
-        overflow: auto;
-        padding: 10px;
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 4px;
       }
-      #editor {
-        flex: 1;
-        padding: 10px;
-      }
-      input {
-        width: 80%;
-      }
-      button {
-        margin-left: 10px;
+      th {
+        background: #eee;
       }
     </style>
   </head>
   <body>
-    <div id="classes">
-      <h3>Class一覧</h3>
-      <ul id="classList"></ul>
-    </div>
-    <div id="ids">
-      <h3>ID一覧</h3>
-      <ul id="idList"></ul>
-    </div>
-    <div id="editor">
-      <h3>リネーム</h3>
-      <input id="oldName" placeholder="元クラス名" />
-      <input id="newName" placeholder="新しいクラス名" />
-      <button id="renameBtn">変更</button>
-      <pre id="log"></pre>
-    </div>
-    <div id="editor">
-      <h3>リネーム</h3>
-      <input id="oldIdName" placeholder="元id名" />
-      <input id="newIdName" placeholder="新しいid名" />
-      <button id="renameIdBtn">変更</button>
-      <pre id="log"></pre>
-    </div>
-    <script src="renderer.js"></script>
+    <h1>タグ＋属性集計ツール</h1>
+    <button id="selectDir">ディレクトリを選択</button>
+    <h2>タグ＋属性 一覧</h2>
+    <table id="tagTable">
+      <thead>
+        <tr>
+          <th>回数</th>
+          <th>タグ＋属性</th>
+          <th>使用ファイル</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2>CSS クラス 一覧</h2>
+    <table id="classTable">
+      <thead>
+        <tr>
+          <th>回数</th>
+          <th>クラス名</th>
+          <th>使用ファイル</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      document.getElementById("selectDir").addEventListener("click", async () => {
+        const result = await window.api.analyzeProject();
+        if (!result) return;
+
+        const tagTbody = document.querySelector("#tagTable tbody");
+        tagTbody.innerHTML = "";
+        result.tagAttrStats
+          .sort((a, b) => b.count - a.count)
+          .forEach((row) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${row.count}</td><td>${row.name}</td><td>${row.files.join(", ")}</td>`;
+            tagTbody.appendChild(tr);
+          });
+
+        const classTbody = document.querySelector("#classTable tbody");
+        classTbody.innerHTML = "";
+        result.classStats
+          .sort((a, b) => b.count - a.count)
+          .forEach((row) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${row.count}</td><td>${row.name}</td><td>${row.files.join(", ")}</td>`;
+            classTbody.appendChild(tr);
+          });
+      });
+    </script>
   </body>
 </html>
