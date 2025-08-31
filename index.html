@@ -20,6 +20,12 @@
       th {
         background: #eee;
       }
+      code {
+        background-color: #f5f5f5;
+        padding: 2px 4px;
+        border-radius: 4px;
+        font-family: monospace;
+      }
     </style>
   </head>
   <body>
@@ -32,6 +38,7 @@
           <th>回数</th>
           <th>タグ＋属性</th>
           <th>使用ファイル</th>
+          <th>未使用ファイル</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -44,36 +51,63 @@
           <th>回数</th>
           <th>クラス名</th>
           <th>使用ファイル</th>
+          <th>未使用ファイル</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
 
     <script>
-      document.getElementById("selectDir").addEventListener("click", async () => {
-        const result = await window.api.analyzeProject();
-        if (!result) return;
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
 
-        const tagTbody = document.querySelector("#tagTable tbody");
-        tagTbody.innerHTML = "";
-        result.tagAttrStats
-          .sort((a, b) => b.count - a.count)
-          .forEach((row) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${row.count}</td><td>${row.name}</td><td>${row.files.join(", ")}</td>`;
-            tagTbody.appendChild(tr);
-          });
+      document
+        .getElementById("selectDir")
+        .addEventListener("click", async () => {
+          const result = await window.api.analyzeProject();
+          if (!result) return;
 
-        const classTbody = document.querySelector("#classTable tbody");
-        classTbody.innerHTML = "";
-        result.classStats
-          .sort((a, b) => b.count - a.count)
-          .forEach((row) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${row.count}</td><td>${row.name}</td><td>${row.files.join(", ")}</td>`;
-            classTbody.appendChild(tr);
-          });
-      });
+          const tagTbody = document.querySelector("#tagTable tbody");
+          tagTbody.innerHTML = "";
+          result.tagAttrStats
+            .sort((a, b) => b.count - a.count)
+            .forEach((row) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `<td>${row.count}</td>
+              <td>${escapeHtml(row.name)}</td>
+              <td>${row.usedFiles.join(", ")}</td>
+              <td>${row.unusedFiles.join(", ")}</td>
+              `;
+              tagTbody.appendChild(tr);
+            });
+
+          const classTbody = document.querySelector("#classTable tbody");
+          classTbody.innerHTML = "";
+          result.classStats
+            .sort((a, b) => b.count - a.count)
+            .forEach((row) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `<td>${row.count}</td>
+              <td>${escapeHtml(row.name)}</td>
+              <td>${row.usedFiles.join(", ")}</td>
+              <td>${row.unusedFiles.join(", ")}</td>
+              `;
+              y.appendChild(tr);
+            });
+
+          // 使用ファイル
+          document.getElementById("usedFiles").textContent =
+            result.usedFiles.join("\n");
+
+          // 未使用ファイル
+          document.getElementById("unusedFiles").textContent =
+            result.unusedFiles.join("\n");
+        });
     </script>
   </body>
 </html>
