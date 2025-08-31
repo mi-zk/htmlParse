@@ -93,7 +93,7 @@ ipcMain.handle("analyze-project", async () => {
   // 未使用ファイルの計算
   Object.keys(tagAttrStats).forEach((key) => {
     const used = tagAttrStats[key].usedFiles;
-    const unused = [...allFilesSet].filter((f) => !used.has(f));
+    const unused = [...allFilesSet].filter((f) => !used.has(f)); //htmlすべてから、usedにないものだけを通すフィルタ
     tagAttrStats[key].unusedFiles = new Set(unused);
   });
 
