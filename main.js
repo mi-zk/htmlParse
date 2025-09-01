@@ -23,11 +23,7 @@ const getHtmlFiles = (dir) => {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       files = files.concat(getHtmlFiles(fullPath));
-    } else if (
-      entry.isFile() &&
-      (entry.name.toLowerCase().endsWith(".html") ||
-        entry.name.toLowerCase().endsWith(".htm"))
-    ) {
+    } else if (entry.isFile() && (entry.name.toLowerCase().endsWith(".html") || entry.name.toLowerCase().endsWith(".htm"))) {
       files.push(fullPath);
     }
   }
@@ -74,8 +70,7 @@ ipcMain.handle("analyze-project", async () => {
         attrStr += ` ${attr}="${val}"`;
       }
       const key = `<${el.tagName}${attrStr}>`;
-      if (!tagAttrStats[key])
-        tagAttrStats[key] = { count: 0, usedFiles: new Set() };
+      if (!tagAttrStats[key]) tagAttrStats[key] = { count: 0, usedFiles: new Set() };
       tagAttrStats[key].count++;
       tagAttrStats[key].usedFiles.add(file);
     });

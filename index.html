@@ -26,12 +26,18 @@
         border-radius: 4px;
         font-family: monospace;
       }
+      input {
+        margin-bottom: 10px;
+        padding: 4px;
+        width: 300px;
+      }
     </style>
   </head>
   <body>
     <h1>タグ＋属性集計ツール</h1>
     <button id="selectDir">ディレクトリを選択</button>
     <h2>タグ＋属性 一覧</h2>
+    <!-- <input id="tagSearch" type="text" placeholder="タグ＋属性を検索..." /> -->
     <table id="tagTable">
       <thead>
         <tr>
@@ -45,6 +51,7 @@
     </table>
 
     <h2>CSS クラス 一覧</h2>
+    <!-- <input id="classSearch" type="text" placeholder="クラス名を検索..." /> -->
     <table id="classTable">
       <thead>
         <tr>
@@ -59,55 +66,56 @@
 
     <script>
       function escapeHtml(str) {
-        return String(str)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
       }
 
-      document
-        .getElementById("selectDir")
-        .addEventListener("click", async () => {
-          const result = await window.api.analyzeProject();
-          if (!result) return;
+      document.getElementById("selectDir").addEventListener("click", async () => {
+        const result = await window.api.analyzeProject();
+        if (!result) return;
 
-          const tagTbody = document.querySelector("#tagTable tbody");
-          tagTbody.innerHTML = "";
-          result.tagAttrStats
-            .sort((a, b) => b.count - a.count)
-            .forEach((row) => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `<td>${row.count}</td>
+        const tagTbody = document.querySelector("#tagTable tbody");
+        tagTbody.innerHTML = "";
+        result.tagAttrStats
+          .sort((a, b) => b.count - a.count)
+          .forEach((row) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${row.count}</td>
               <td>${escapeHtml(row.name)}</td>
               <td>${row.usedFiles.join(", ")}</td>
               <td>${row.unusedFiles.join(", ")}</td>
               `;
-              tagTbody.appendChild(tr);
-            });
+            tagTbody.appendChild(tr);
+          });
 
-          const classTbody = document.querySelector("#classTable tbody");
-          classTbody.innerHTML = "";
-          result.classStats
-            .sort((a, b) => b.count - a.count)
-            .forEach((row) => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `<td>${row.count}</td>
+        const classTbody = document.querySelector("#classTable tbody");
+        classTbody.innerHTML = "";
+        result.classStats
+          .sort((a, b) => b.count - a.count)
+          .forEach((row) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${row.count}</td>
               <td>${escapeHtml(row.name)}</td>
               <td>${row.usedFiles.join(", ")}</td>
               <td>${row.unusedFiles.join(", ")}</td>
               `;
-              y.appendChild(tr);
-            });
+            y.appendChild(tr);
+          });
 
-          // 使用ファイル
-          document.getElementById("usedFiles").textContent =
-            result.usedFiles.join("\n");
+        // 使用ファイル
+        document.getElementById("usedFiles").textContent = result.usedFiles.join("\n");
 
-          // 未使用ファイル
-          document.getElementById("unusedFiles").textContent =
-            result.unusedFiles.join("\n");
+        // 未使用ファイル
+        document.getElementById("unusedFiles").textContent = result.unusedFiles.join("\n");
+
+        // 検索イベント
+        document.getElementById("tagSearch").addEventListener("input", (e) => {
+          renderTable(tagData, "tagTable", e.target.value);
         });
+        document.getElementById("classSearch").addEventListener("input", (e) => {
+          renderTable(classData, "classTable", e.target.value);
+        });
+      });
     </script>
+    <script src="renderer.js"></script>
   </body>
 </html>
