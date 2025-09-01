@@ -37,7 +37,7 @@
     <h1>タグ＋属性集計ツール</h1>
     <button id="selectDir">ディレクトリを選択</button>
     <h2>タグ＋属性 一覧</h2>
-    <!-- <input id="tagSearch" type="text" placeholder="タグ＋属性を検索..." /> -->
+    <input id="tagSearch" type="text" placeholder="タグ＋属性を検索..." />
     <table id="tagTable">
       <thead>
         <tr>
@@ -51,7 +51,7 @@
     </table>
 
     <h2>CSS クラス 一覧</h2>
-    <!-- <input id="classSearch" type="text" placeholder="クラス名を検索..." /> -->
+    <input id="classSearch" type="text" placeholder="クラス名を検索..." />
     <table id="classTable">
       <thead>
         <tr>
@@ -65,6 +65,7 @@
     </table>
 
     <script>
+      //webアプリ上でタグがHTMLとして解釈されないようにエスケープ
       function escapeHtml(str) {
         return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
       }
@@ -106,16 +107,8 @@
 
         // 未使用ファイル
         document.getElementById("unusedFiles").textContent = result.unusedFiles.join("\n");
-
-        // 検索イベント
-        document.getElementById("tagSearch").addEventListener("input", (e) => {
-          renderTable(tagData, "tagTable", e.target.value);
-        });
-        document.getElementById("classSearch").addEventListener("input", (e) => {
-          renderTable(classData, "classTable", e.target.value);
-        });
       });
     </script>
-    <script src="renderer.js"></script>
+    <script src="search.js"></script>
   </body>
 </html>
