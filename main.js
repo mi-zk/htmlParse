@@ -23,7 +23,11 @@ const getHtmlFiles = (dir) => {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       files = files.concat(getHtmlFiles(fullPath));
-    } else if (entry.isFile() && (entry.name.toLowerCase().endsWith(".html") || entry.name.toLowerCase().endsWith(".htm"))) {
+    } else if (
+      entry.isFile() &&
+      (entry.name.toLowerCase().endsWith(".html") ||
+        entry.name.toLowerCase().endsWith(".htm"))
+    ) {
       files.push(fullPath);
     }
   }
@@ -55,8 +59,10 @@ ipcMain.handle("analyze-project", async () => {
   const targetDir = filePaths[0];
   const htmlFiles = getHtmlFiles(targetDir);
   const cssFiles = getCssFiles(targetDir);
+  const allHtmlFilesSet = new Set(htmlFiles); // 全HTMLファイル一覧
+  const allCssFilesSet = new Set(cssFiles); // 全CSSファイル一覧
+
   const tagAttrStats = {}; // タグ＋属性の集計
-  const allFilesSet = new Set(htmlFiles); // 全HTMLファイル一覧
   const classStats = {};
 
   for (const file of htmlFiles) {
@@ -70,26 +76,47 @@ ipcMain.handle("analyze-project", async () => {
         attrStr += ` ${attr}="${val}"`;
       }
       const key = `<${el.tagName}${attrStr}>`;
-      if (!tagAttrStats[key]) tagAttrStats[key] = { count: 0, usedFiles: new Set() };
+      if (!tagAttrStats[key])
+        tagAttrStats[key] = {
+          count: 0,
+          usedFiles: new Set(),
+          unusedFiles: new Set(),
+        };
       tagAttrStats[key].count++;
       tagAttrStats[key].usedFiles.add(file);
     });
-
-    // // クラス集計
-    // $("[class]").each((_, el) => {
-    //   const classes = $(el).attr("class").split(/\s+/).filter(Boolean);
-    //   for (const cls of classes) {
-    //     if (!classStats[cls]) classStats[cls] = { count: 0, files: new Set() };
-    //     classStats[cls].count++;
-    //     classStats[cls].files.add(file);
-    //   }
-    // });
   }
+
+  for (const cssFile of cssFiles) {
+    const cssContent = fs.readFileSync(cssFile, "utf-8");
+    // 正規表現でクラスセレクタを抽出
+    const matches = cssContent.match(/\.[a-zA-Z0-9_-]+/g) || [];
+
+    for (const match of matches) {
+      const cls = match.slice(1); // 先頭の . を除去
+      if (!classStats[cls])
+        classStats[cls] = {
+          count: 0,
+          usedFiles: new Set(),
+          unusedFiles: new Set(),
+        };
+      classStats[cls].count++;
+      classStats[cls].usedFiles.add(cssFile);
+    }
+  }
+
   // 未使用ファイルの計算
   Object.keys(tagAttrStats).forEach((key) => {
     const used = tagAttrStats[key].usedFiles;
-    const unused = [...allFilesSet].filter((f) => !used.has(f)); //htmlすべてから、usedにないものだけを通すフィルタ
+    const unused = [...allHtmlFilesSet].filter((f) => !used.has(f)); //htmlすべてから、usedにないものだけを通すフィルタ
     tagAttrStats[key].unusedFiles = new Set(unused);
+  });
+
+  // 未使用ファイルの計算
+  Object.keys(classStats).forEach((key) => {
+    const used = classStats[key].usedFiles;
+    const unused = [...allCssFilesSet].filter((f) => !used.has(f)); //htmlすべてから、usedにないものだけを通すフィルタ
+    classStats[key].unusedFiles = new Set(unused);
   });
 
   return {
@@ -101,11 +128,15 @@ ipcMain.handle("analyze-project", async () => {
         usedFiles: [...data.usedFiles],
         unusedFiles: [...data.unusedFiles],
       })),
-    classStats: Object.entries(classStats).map(([name, data]) => ({
-      name,
-      count: data.count,
-      files: Array.from(data.files),
-    })),
+    classStats: Object.entries(classStats)
+      .sort((a, b) => b[1].count - a[1].count) // ← 並び替え追加
+      .map(([name, data]) => ({
+        type: "class", // ← 区別できるように
+        name,
+        count: data.count,
+        usedFiles: [...data.usedFiles],
+        unusedFiles: [...data.unusedFiles],
+      })),
   };
 });
 
