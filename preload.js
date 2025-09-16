@@ -20,4 +20,6 @@ contextBridge.exposeInMainWorld("api", {
   },
   // フォルダ選択
   selectDir: () => ipcRenderer.invoke("select-dir"),
+  // ダイアログ
+  showDialog: (msg) => ipcRenderer.invoke("show-dialog", msg),
 });

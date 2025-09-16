@@ -2,6 +2,10 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+let tagData = [];
+//置換用
+let currentDir = "";
+
 const renderTable = (data, tableId, filter = "") => {
   const tbody = document.querySelector(`#${tableId} tbody`);
   tbody.innerHTML = "";
@@ -21,20 +25,17 @@ const renderTable = (data, tableId, filter = "") => {
     });
 };
 
-let tagData = [];
-//置換用
-let currentDir = "";
-
 // === ディレクトリ選択 ===
 
 document.getElementById("selectDir").addEventListener("click", async () => {
   // ① フォルダ選択
   const dirPath = await window.api.selectDir();
   if (!dirPath) return;
+  currentDir = dirPath;
+
   // ② 解析
   window.dispatchEvent(new Event("loading-start"));
   const result = await window.api.analyzeProject(dirPath);
-  window.dispatchEvent(new Event("loading-end"));
   if (!result) return;
   currentDir = dirPath;
   tagData = result.tagAttrStats;
@@ -61,12 +62,12 @@ document.getElementById("replaceBtn").addEventListener("click", async () => {
   const from = document.getElementById("tagSearch").value;
   const to = document.getElementById("replaceTo").value;
   if (!from) {
-    alert("置換元を入力してください");
+    await window.api.showDialog("置換元を入力してください");
     return;
   }
   //main.jsのipcMain.handle("replace-tag", ...)に処理を依頼
   await window.api.replaceTag(from, to, currentDir);
-  alert("置換完了");
+  await window.api.showDialog("置換完了");
   // 再解析して表示更新
   const result = await window.api.analyzeProject(currentDir);
   if (!result) return;

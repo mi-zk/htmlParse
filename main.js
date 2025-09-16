@@ -33,6 +33,7 @@ const getHtmlFiles = (dir) => {
 //置換ハンドラ
 ipcMain.handle("replace-tag", async (_, { target, replacement, dir }) => {
   if (!dir) return false;
+  if (!target) return false; // 置換元が空なら何もしない
 
   const htmlFiles = getHtmlFiles(dir);
 
@@ -41,29 +42,30 @@ ipcMain.handle("replace-tag", async (_, { target, replacement, dir }) => {
     const dom = new JSDOM(html);
     const document = dom.window.document;
 
-    // targetタグをすべて取得
-    const elements = document.querySelectorAll(target);
+    document.querySelectorAll("*").forEach((el) => {
+      // <tag attr="val" attr2="val2"> の形に正規化
+      const attrStr = Array.from(el.attributes)
+        .map((a) => ` ${a.name}="${a.value}"`)
+        .join("");
+      const key = `<${el.tagName.toLowerCase()}${attrStr}>`;
 
-    elements.forEach((el) => {
-      // 新しいタグを作る
-      const newEl = document.createElement(replacement);
-
-      // 属性をコピー
-      Array.from(el.attributes).forEach((attr) => {
-        newEl.setAttribute(attr.name, attr.value);
-      });
-
-      // 中身をコピー
-      newEl.innerHTML = el.innerHTML;
-
-      // 元の要素を置換
-      el.replaceWith(newEl);
+      if (key === target) {
+        if (!replacement) {
+          // 置換後が空ならタグごと削除
+          el.remove();
+        } else {
+          // 置換処理：タグ名ごと入れ替える例
+          const newTag = replacement.replace(/^<|>$/g, ""); // 例: <div> -> div
+          const newEl = document.createElement(newTag);
+          // 子要素・テキストを保持
+          while (el.firstChild) newEl.appendChild(el.firstChild);
+          el.replaceWith(newEl);
+        }
+      }
     });
 
-    // DOM 全体を文字列化してファイルに書き戻す
     fs.writeFileSync(file, dom.serialize(), "utf-8");
   }
-
   return true;
 });
 
@@ -130,6 +132,16 @@ ipcMain.handle("analyze-project", async (_event, dirPath) => {
         unusedFiles: [...data.unusedFiles],
       })),
   };
+});
+
+ipcMain.handle("show-dialog", async (_, message) => {
+  await dialog.showMessageBox(BrowserWindow.getFocusedWindow(), {
+    type: "info", // info | warning | error など
+    buttons: ["OK"],
+    defaultId: 0,
+    title: "完了",
+    message, // 表示したいメッセージ
+  });
 });
 
 app.whenReady().then(createWindow);
