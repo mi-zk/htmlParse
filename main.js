@@ -2,6 +2,7 @@ const { app, BrowserWindow, dialog, ipcMain } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const cheerio = require("cheerio");
+const puppeteer = require("puppeteer");
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -23,47 +24,43 @@ const getHtmlFiles = (dir) => {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       files = files.concat(getHtmlFiles(fullPath));
-    } else if (
-      entry.isFile() &&
-      (entry.name.toLowerCase().endsWith(".html") ||
-        entry.name.toLowerCase().endsWith(".htm"))
-    ) {
+    } else if (entry.isFile() && (entry.name.toLowerCase().endsWith(".html") || entry.name.toLowerCase().endsWith(".htm"))) {
       files.push(fullPath);
     }
   }
   return files;
 };
-
-// CSSファイル取得
-const getCssFiles = (dir) => {
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  let files = [];
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files = files.concat(getCssFiles(fullPath));
-    } else if (entry.isFile() && entry.name.toLowerCase().endsWith(".css")) {
-      files.push(fullPath);
+//置換ハンドラ
+ipcMain.handle("replace-tag", async (_, { target, replacement, dir }) => {
+  if (!dir) return false;
+  const htmlFiles = getHtmlFiles(dir); // 呼び出し毎にディレクトリを指定
+  for (const file of htmlFiles) {
+    let content = fs.readFileSync(file, "utf-8");
+    console.log(`Processing file: ${file}, replacing ${target} with ${replacement},(content.includes(target): ${content.includes(target)})`);
+    //targerをreplacementに置換
+    if (content.includes(target)) {
+      content = content.split(target).join(replacement);
+      fs.writeFileSync(file, content, "utf-8");
     }
   }
-  return files;
-};
+  return true;
+});
 
-// IPCで処理
-ipcMain.handle("analyze-project", async () => {
+// ✅ フォルダ選択専用ハンドラ
+ipcMain.handle("select-dir", async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog({
     properties: ["openDirectory"],
   });
-  if (canceled) return null;
+  return canceled ? null : filePaths[0];
+});
 
-  const targetDir = filePaths[0];
+// 解析専用ハンドラ
+ipcMain.handle("analyze-project", async (_event, dirPath) => {
+  const targetDir = dirPath;
   const htmlFiles = getHtmlFiles(targetDir);
-  const cssFiles = getCssFiles(targetDir);
   const allHtmlFilesSet = new Set(htmlFiles); // 全HTMLファイル一覧
-  const allCssFilesSet = new Set(cssFiles); // 全CSSファイル一覧
 
   const tagAttrStats = {}; // タグ＋属性の集計
-  const classStats = {};
 
   for (const file of htmlFiles) {
     const html = fs.readFileSync(file, "utf-8");
@@ -87,24 +84,6 @@ ipcMain.handle("analyze-project", async () => {
     });
   }
 
-  for (const cssFile of cssFiles) {
-    const cssContent = fs.readFileSync(cssFile, "utf-8");
-    // 正規表現でクラスセレクタを抽出
-    const matches = cssContent.match(/\.[a-zA-Z0-9_-]+/g) || [];
-
-    for (const match of matches) {
-      const cls = match.slice(1); // 先頭の . を除去
-      if (!classStats[cls])
-        classStats[cls] = {
-          count: 0,
-          usedFiles: new Set(),
-          unusedFiles: new Set(),
-        };
-      classStats[cls].count++;
-      classStats[cls].usedFiles.add(cssFile);
-    }
-  }
-
   // 未使用ファイルの計算
   Object.keys(tagAttrStats).forEach((key) => {
     const used = tagAttrStats[key].usedFiles;
@@ -112,26 +91,11 @@ ipcMain.handle("analyze-project", async () => {
     tagAttrStats[key].unusedFiles = new Set(unused);
   });
 
-  // 未使用ファイルの計算
-  Object.keys(classStats).forEach((key) => {
-    const used = classStats[key].usedFiles;
-    const unused = [...allCssFilesSet].filter((f) => !used.has(f)); //htmlすべてから、usedにないものだけを通すフィルタ
-    classStats[key].unusedFiles = new Set(unused);
-  });
-
   return {
+    dir: targetDir,
     tagAttrStats: Object.entries(tagAttrStats)
       .sort((a, b) => b[1].count - a[1].count)
       .map(([name, data]) => ({
-        name,
-        count: data.count,
-        usedFiles: [...data.usedFiles],
-        unusedFiles: [...data.unusedFiles],
-      })),
-    classStats: Object.entries(classStats)
-      .sort((a, b) => b[1].count - a[1].count) // ← 並び替え追加
-      .map(([name, data]) => ({
-        type: "class", // ← 区別できるように
         name,
         count: data.count,
         usedFiles: [...data.usedFiles],

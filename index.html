@@ -2,42 +2,18 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <title>タグ＋属性集計</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        margin: 20px;
-      }
-      table {
-        border-collapse: collapse;
-        width: 100%;
-      }
-      th,
-      td {
-        border: 1px solid #ccc;
-        padding: 4px;
-      }
-      th {
-        background: #eee;
-      }
-      code {
-        background-color: #f5f5f5;
-        padding: 2px 4px;
-        border-radius: 4px;
-        font-family: monospace;
-      }
-      input {
-        margin-bottom: 10px;
-        padding: 4px;
-        width: 300px;
-      }
-    </style>
+    <title>タグ＋属性,CSSクラス集計</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <h1>タグ＋属性集計ツール</h1>
     <button id="selectDir">ディレクトリを選択</button>
     <h2>タグ＋属性 一覧</h2>
-    <input id="tagSearch" type="text" placeholder="タグ＋属性を検索..." />
+    <div id="searchBox">
+      <input id="tagSearch" type="text" placeholder="タグ＋属性を検索..." />
+      <input id="replaceTo" type="text" placeholder="置換" />
+      <button id="replaceBtn">置換実行</button>
+    </div>
     <table id="tagTable">
       <thead>
         <tr>
@@ -50,7 +26,13 @@
       <tbody></tbody>
     </table>
 
-    <h2>CSS クラス 一覧</h2>
+    <!-- ローディング画面 -->
+    <div id="loading">
+      <div class="spinner"></div>
+      <p style="margin-top: 10px; font-size: 18px; color: #333">読み込み中...</p>
+    </div>
+
+    <!-- <h2>CSS クラス 一覧</h2>
     <input id="classSearch" type="text" placeholder="クラス名を検索..." />
     <table id="classTable">
       <thead>
@@ -62,53 +44,8 @@
         </tr>
       </thead>
       <tbody></tbody>
-    </table>
-
-    <script>
-      //webアプリ上でタグがHTMLとして解釈されないようにエスケープ
-      function escapeHtml(str) {
-        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-      }
-
-      document.getElementById("selectDir").addEventListener("click", async () => {
-        const result = await window.api.analyzeProject();
-        if (!result) return;
-
-        const tagTbody = document.querySelector("#tagTable tbody");
-        tagTbody.innerHTML = "";
-        result.tagAttrStats
-          .sort((a, b) => b.count - a.count)
-          .forEach((row) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${row.count}</td>
-              <td>${escapeHtml(row.name)}</td>
-              <td>${row.usedFiles.join(", ")}</td>
-              <td>${row.unusedFiles.join(", ")}</td>
-              `;
-            tagTbody.appendChild(tr);
-          });
-
-        const classTbody = document.querySelector("#classTable tbody");
-        classTbody.innerHTML = "";
-        result.classStats
-          .sort((a, b) => b.count - a.count)
-          .forEach((row) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${row.count}</td>
-              <td>${escapeHtml(row.name)}</td>
-              <td>${row.usedFiles.join(", ")}</td>
-              <td>${row.unusedFiles.join(", ")}</td>
-              `;
-            y.appendChild(tr);
-          });
-
-        // 使用ファイル
-        document.getElementById("usedFiles").textContent = result.usedFiles.join("\n");
-
-        // 未使用ファイル
-        document.getElementById("unusedFiles").textContent = result.unusedFiles.join("\n");
-      });
-    </script>
+    </table> -->
+    <script src="renderer.js"></script>
     <script src="search.js"></script>
   </body>
 </html>

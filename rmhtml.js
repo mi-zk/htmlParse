@@ -29,8 +29,8 @@ rl.question("処理するHTMLファイルのパスを入力してください: "
     .get();
   // const result = texts.join(" ");
   const result = (bodyText + " " + texts).replace(/\s+/g, "");
-  // console.log("=== 1.の結果 ===");
-  // console.log(bodyText);
+  console.log("=== 1.の結果 ===");
+  console.log(bodyText);
   console.log("\n=== 2.の結果 ===");
   console.log(result);
 
