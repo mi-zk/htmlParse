@@ -36,7 +36,7 @@ document.getElementById("selectDir").addEventListener("click", async () => {
   const result = await window.api.analyzeProject(dirPath);
   window.dispatchEvent(new Event("loading-end"));
   if (!result) return;
-  currentDir = result.dir;
+  currentDir = dirPath;
   tagData = result.tagAttrStats;
   // スピナー非表示
   window.dispatchEvent(new Event("loading-end"));
@@ -69,11 +69,9 @@ document.getElementById("replaceBtn").addEventListener("click", async () => {
   alert("置換完了");
   // 再解析して表示更新
   const result = await window.api.analyzeProject(currentDir);
-  if (result) {
-    currentDir = result.dir;
-    tagData = result.tagAttrStats;
-    renderTable(tagData, "tagTable");
-  }
+  if (!result) return;
+  tagData = result.tagAttrStats;
+  renderTable(tagData, "tagTable");
 });
 
 //起動時
