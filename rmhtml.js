@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
-const cheerio = require("cheerio");
+const { JSDOM } = require("jsdom");
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -18,17 +18,19 @@ rl.question("処理するHTMLファイルのパスを入力してください: "
   }
 
   const html = fs.readFileSync(filePath, "utf-8");
-  const $ = cheerio.load(html);
+  const dom = new JSDOM(html);
+  const document = dom.window.document;
 
-  //1. <body>内の選択したタグと中身を除去。不要なタグとその中身をfind()の中で指定
-  const bodyText = $("body").clone().find("script, style, iframe, noscript, a").remove().end().text().replace(/\s+/g, " ").trim();
+  // 1. <body>内の不要タグ(script, style, iframe, noscript, a)を除去してテキスト取得
+  const bodyClone = document.body.cloneNode(true);
+  bodyClone.querySelectorAll("script, style, iframe, noscript, a").forEach((el) => el.remove());
+  const bodyText = bodyClone.textContent.replace(/\s+/g, " ").trim();
 
-  //2. 選択したタグの中身だけを取り出す
-  const texts = $("Main")
-    .map((i, el) => $(el).text().trim())
-    .get();
-  // const result = texts.join(" ");
-  const result = (bodyText + " " + texts).replace(/\s+/g, "");
+  // 2. <Main>タグの中身だけを取り出す
+  const mainTexts = Array.from(document.querySelectorAll("Main")).map((el) => el.textContent.trim());
+
+  const result = (bodyText + " " + mainTexts.join(" ")).replace(/\s+/g, "");
+
   console.log("=== 1.の結果 ===");
   console.log(bodyText);
   console.log("\n=== 2.の結果 ===");

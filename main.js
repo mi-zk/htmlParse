@@ -1,7 +1,7 @@
 const { app, BrowserWindow, dialog, ipcMain } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const cheerio = require("cheerio");
+const { JSDOM } = require("jsdom");
 const puppeteer = require("puppeteer");
 
 function createWindow() {
@@ -33,16 +33,37 @@ const getHtmlFiles = (dir) => {
 //置換ハンドラ
 ipcMain.handle("replace-tag", async (_, { target, replacement, dir }) => {
   if (!dir) return false;
-  const htmlFiles = getHtmlFiles(dir); // 呼び出し毎にディレクトリを指定
+
+  const htmlFiles = getHtmlFiles(dir);
+
   for (const file of htmlFiles) {
-    let content = fs.readFileSync(file, "utf-8");
-    console.log(`Processing file: ${file}, replacing ${target} with ${replacement},(content.includes(target): ${content.includes(target)})`);
-    //targerをreplacementに置換
-    if (content.includes(target)) {
-      content = content.split(target).join(replacement);
-      fs.writeFileSync(file, content, "utf-8");
-    }
+    let html = fs.readFileSync(file, "utf-8");
+    const dom = new JSDOM(html);
+    const document = dom.window.document;
+
+    // targetタグをすべて取得
+    const elements = document.querySelectorAll(target);
+
+    elements.forEach((el) => {
+      // 新しいタグを作る
+      const newEl = document.createElement(replacement);
+
+      // 属性をコピー
+      Array.from(el.attributes).forEach((attr) => {
+        newEl.setAttribute(attr.name, attr.value);
+      });
+
+      // 中身をコピー
+      newEl.innerHTML = el.innerHTML;
+
+      // 元の要素を置換
+      el.replaceWith(newEl);
+    });
+
+    // DOM 全体を文字列化してファイルに書き戻す
+    fs.writeFileSync(file, dom.serialize(), "utf-8");
   }
+
   return true;
 });
 
@@ -64,21 +85,28 @@ ipcMain.handle("analyze-project", async (_event, dirPath) => {
 
   for (const file of htmlFiles) {
     const html = fs.readFileSync(file, "utf-8");
-    const $ = cheerio.load(html, { decodeEntities: false });
+    const dom = new JSDOM(html);
+    const document = dom.window.document;
 
-    // タグ＋属性集計
-    $("*").each((_, el) => {
-      let attrStr = "";
-      for (const [attr, val] of Object.entries(el.attribs)) {
-        attrStr += ` ${attr}="${val}"`;
-      }
-      const key = `<${el.tagName}${attrStr}>`;
-      if (!tagAttrStats[key])
+    // すべての要素を取得
+    const elements = document.querySelectorAll("*");
+
+    elements.forEach((el) => {
+      // 属性文字列を作る
+      const attrStr = Array.from(el.attributes)
+        .map((attr) => ` ${attr.name}="${attr.value}"`)
+        .join("");
+
+      const key = `<${el.tagName.toLowerCase()}${attrStr}>`; // 小文字化して統一
+
+      if (!tagAttrStats[key]) {
         tagAttrStats[key] = {
           count: 0,
           usedFiles: new Set(),
           unusedFiles: new Set(),
         };
+      }
+
       tagAttrStats[key].count++;
       tagAttrStats[key].usedFiles.add(file);
     });
