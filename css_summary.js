@@ -5,7 +5,7 @@ const path = require("path");
 const targetDir = "./sample-project/basic"; // CSSディレクトリに変更
 
 // 再帰的にCSSファイルを取得
-function getCssFiles(dir) {
+const getCssFiles = (dir) => {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   let files = [];
   for (const entry of entries) {
@@ -17,10 +17,10 @@ function getCssFiles(dir) {
     }
   }
   return files;
-}
+};
 
 // CSSからクラス名を抽出して出現回数・ファイルリストを取得
-function countClasses(files) {
+const countClasses = (files) => {
   const classInfo = {};
   const classRegex = /\.([a-zA-Z0-9_-]+)[\s,{]/g;
 
@@ -47,7 +47,7 @@ function countClasses(files) {
   }
 
   return classInfo;
-}
+};
 
 const cssFiles = getCssFiles(targetDir);
 const result = countClasses(cssFiles);

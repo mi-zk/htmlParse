@@ -4,7 +4,7 @@ const fs = require("fs");
 const { JSDOM } = require("jsdom");
 const puppeteer = require("puppeteer");
 
-function createWindow() {
+const createWindow = () => {
   const win = new BrowserWindow({
     width: 1000,
     height: 800,
@@ -14,7 +14,7 @@ function createWindow() {
   });
 
   win.loadFile("index.html");
-}
+};
 
 // HTMLファイル取得
 const getHtmlFiles = (dir) => {

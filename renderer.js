@@ -1,6 +1,6 @@
-function escapeHtml(str) {
+const escapeHtml = (str) => {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
+};
 
 let tagData = [];
 //置換用
