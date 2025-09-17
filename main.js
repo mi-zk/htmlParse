@@ -81,6 +81,19 @@ ipcMain.handle("select-dir", async () => {
 ipcMain.handle("analyze-project", async (_event, dirPath) => {
   const targetDir = dirPath;
   const htmlFiles = getHtmlFiles(targetDir);
+
+  const MAX_FILES = 100;
+  if (htmlFiles.length > MAX_FILES) {
+    dialog.showMessageBox(BrowserWindow.getFocusedWindow(), {
+      type: "info", // info | warning | error など
+      buttons: ["OK"],
+      defaultId: 0,
+      title: "完了",
+      message: `HTMLファイルが多すぎます（${htmlFiles.length}個）。最大は${MAX_FILES}個です。`, // 表示したいメッセージ
+    });
+    return { error: `HTMLファイルが多すぎます（${htmlFiles.length}個）。最大は${MAX_FILES}個です。` };
+  }
+
   const allHtmlFilesSet = new Set(htmlFiles); // 全HTMLファイル一覧
 
   const tagAttrStats = {}; // タグ＋属性の集計

@@ -87,3 +87,27 @@ code {
     transform: rotate(360deg);
   }
 }
+
+/* テーブル全体を固定レイアウトに */
+#tagTable {
+  table-layout: fixed; /* セル幅を固定して折り返しを有効にする */
+  width: 100%; /* 画面幅に合わせる */
+  border-collapse: collapse;
+}
+
+/* 各セルの折り返し設定 */
+#tagTable th,
+#tagTable td {
+  padding: 8px;
+  border: 1px solid #ccc;
+  white-space: normal; /* 自動改行を許可 */
+  word-break: break-word; /* 長い単語も強制的に折り返す */
+}
+
+/* 必要に応じて特定の列だけ幅を指定 */
+#tagTable th:nth-child(3),
+#tagTable td:nth-child(3),
+#tagTable th:nth-child(4),
+#tagTable td:nth-child(4) {
+  width: 30%; /* 使用/未使用ファイル列を少し狭める例 */
+}

@@ -6,6 +6,8 @@ let tagData = [];
 //置換用
 let currentDir = "";
 
+const loadingEl = document.getElementById("loading");
+
 const renderTable = (data, tableId, filter = "") => {
   const tbody = document.querySelector(`#${tableId} tbody`);
   tbody.innerHTML = "";
@@ -34,27 +36,31 @@ document.getElementById("selectDir").addEventListener("click", async () => {
   currentDir = dirPath;
 
   // ② 解析
-  window.dispatchEvent(new Event("loading-start"));
-  const result = await window.api.analyzeProject(dirPath);
-  if (!result) return;
-  currentDir = dirPath;
-  tagData = result.tagAttrStats;
-  // スピナー非表示
-  window.dispatchEvent(new Event("loading-end"));
-  renderTable(tagData, "tagTable");
+  // 解析開始：スピナー表示
+  loadingEl.style.display = "flex";
+
+  // UI を描画させてから解析開始
+  setTimeout(async () => {
+    try {
+      const result = await window.api.analyzeProject(dirPath);
+      if (result) {
+        tagData = result.tagAttrStats;
+        renderTable(tagData, "tagTable");
+      }
+    } finally {
+      loadingEl.style.display = "none";
+    }
+  }, 0);
 });
 
-document.getElementById("tagSearch").addEventListener("input", (e) => {
-  renderTable(tagData, "tagTable", e.target.value);
-});
-
-// スピナー要素
-const loadingEl = document.getElementById("loading");
 window.addEventListener("loading-start", () => {
   loadingEl.style.display = "flex";
 });
 window.addEventListener("loading-end", () => {
   loadingEl.style.display = "none";
+});
+document.getElementById("tagSearch").addEventListener("input", (e) => {
+  renderTable(tagData, "tagTable", e.target.value);
 });
 
 // === 置換処理 ===
